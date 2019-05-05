@@ -1,0 +1,8 @@
+version: '2'
+services:
+  mc2:
+    image: 289626254647.dkr.ecr.us-east-1.amazonaws.com/mc2
+    cpu_shares: 100
+    mem_limit: 104857600
+    ports:
+      - "1002:80"
