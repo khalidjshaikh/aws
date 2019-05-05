@@ -1,0 +1,20 @@
+{
+  "containerDefinitions": [
+    {
+      "portMappings": [
+        {
+          "hostPort": 80,
+          "protocol": "tcp",
+          "containerPort": 80
+        }
+      ],
+      "cpu": 0,
+      "image": "289626254647.dkr.ecr.us-east-1.amazonaws.com/nginx",
+      "name": "nginx"
+    }
+  ],
+  "placementConstraints": [],
+  "memory": "512",
+  "family": "nginx",
+  "cpu": "1024"
+}
