@@ -5,7 +5,7 @@
 # ecs-cli up --capability-iam --size 1 --instance-type t3.micro --keypair Dell
 for i in 1 2 3 4 5
 do
-  ecs-cli compose --project-name mc$i --file mc$i.yml up
+  ecs-cli compose --project-name mc$i --file mc$i.yml up --cluster bhge
 done
 
 ## Modeling M1 through M5 as multiple clusters
