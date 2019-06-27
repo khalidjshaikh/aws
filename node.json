@@ -1,227 +1,227 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "EKS nodes (AMI family: AmazonLinux2, SSH access: false, private networking: false) [created and managed by eksctl]",
-  "Resources": {
-    "EgressInterCluster": {
-      "Type": "AWS::EC2::SecurityGroupEgress",
-      "Properties": {
-        "Description": "Allow control plane to communicate with worker nodes in group ng-e518704c (kubelet and workload TCP ports)",
-        "DestinationSecurityGroupId": {
-          "Ref": "SG"
-        },
-        "FromPort": 1025,
-        "GroupId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SecurityGroup"
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 65535
-      }
-    },
-    "EgressInterClusterAPI": {
-      "Type": "AWS::EC2::SecurityGroupEgress",
-      "Properties": {
-        "Description": "Allow control plane to communicate with worker nodes in group ng-e518704c (workloads using HTTPS port, commonly used with extension API servers)",
-        "DestinationSecurityGroupId": {
-          "Ref": "SG"
-        },
-        "FromPort": 443,
-        "GroupId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SecurityGroup"
-        },
-        "IpProtocol": "tcp",
-        "ToPort": 443
-      }
-    },
-    "IngressInterCluster": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "Description": "Allow worker nodes in group ng-e518704c to communicate with control plane (kubelet and workload TCP ports)",
-        "FromPort": 1025,
-        "GroupId": {
-          "Ref": "SG"
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SecurityGroup"
-        },
-        "ToPort": 65535
-      }
-    },
-    "IngressInterClusterAPI": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "Description": "Allow worker nodes in group ng-e518704c to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
-        "FromPort": 443,
-        "GroupId": {
-          "Ref": "SG"
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SecurityGroup"
-        },
-        "ToPort": 443
-      }
-    },
-    "IngressInterClusterCP": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "Description": "Allow control plane to receive API requests from worker nodes in group ng-e518704c",
-        "FromPort": 443,
-        "GroupId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SecurityGroup"
-        },
-        "IpProtocol": "tcp",
-        "SourceSecurityGroupId": {
-          "Ref": "SG"
-        },
-        "ToPort": 443
-      }
-    },
-    "NodeGroup": {
-      "Type": "AWS::AutoScaling::AutoScalingGroup",
-      "Properties": {
-        "LaunchConfigurationName": {
-          "Ref": "NodeLaunchConfig"
-        },
-        "MaxSize": "2",
-        "MinSize": "2",
-        "Tags": [
-          {
-            "Key": "Name",
-            "PropagateAtLaunch": "true",
-            "Value": "exciting-badger-1557783835-ng-e518704c-Node"
-          },
-          {
-            "Key": "kubernetes.io/cluster/exciting-badger-1557783835",
-            "PropagateAtLaunch": "true",
-            "Value": "owned"
-          }
-        ],
-        "VPCZoneIdentifier": {
-          "Fn::Split": [
-            ",",
-            {
-              "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SubnetsPublic"
-            }
-          ]
-        }
+   "AWSTemplateFormatVersion":"2010-09-09",
+   "Description":"EKS nodes (AMI family: AmazonLinux2, SSH access: false, private networking: false) [created and managed by eksctl]",
+   "Resources":{
+      "EgressInterCluster":{
+         "Type":"AWS::EC2::SecurityGroupEgress",
+         "Properties":{
+            "Description":"Allow control plane to communicate with worker nodes in group ng-04cccb09 (kubelet and workload TCP ports)",
+            "DestinationSecurityGroupId":{
+               "Ref":"SG"
+            },
+            "FromPort":1025,
+            "GroupId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SecurityGroup"
+            },
+            "IpProtocol":"tcp",
+            "ToPort":65535
+         }
       },
-      "UpdatePolicy": {
-        "AutoScalingRollingUpdate": {
-          "MaxBatchSize": "1",
-          "MinInstancesInService": "1"
-        }
-      }
-    },
-    "NodeInstanceProfile": {
-      "Type": "AWS::IAM::InstanceProfile",
-      "Properties": {
-        "Path": "/",
-        "Roles": [
-          {
-            "Ref": "NodeInstanceRole"
-          }
-        ]
-      }
-    },
-    "NodeInstanceRole": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "sts:AssumeRole"
-              ],
-              "Effect": "Allow",
-              "Principal": {
-                "Service": [
-                  "ec2.amazonaws.com"
-                ]
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-          "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-          "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-        ],
-        "Path": "/"
-      }
-    },
-    "NodeLaunchConfig": {
-      "Type": "AWS::AutoScaling::LaunchConfiguration",
-      "Properties": {
-        "AssociatePublicIpAddress": true,
-        "IamInstanceProfile": {
-          "Ref": "NodeInstanceProfile"
-        },
-        "ImageId": "ami-0abcb9f9190e867ab",
-        "InstanceType": "m5.large",
-        "SecurityGroups": [
-          {
-            "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::SharedNodeSecurityGroup"
-          },
-          {
-            "Ref": "SG"
-          }
-        ],
-        "UserData": "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"
-      }
-    },
-    "SG": {
-      "Type": "AWS::EC2::SecurityGroup",
-      "Properties": {
-        "GroupDescription": "Communication between the control plane and worker nodes in group ng-e518704c",
-        "Tags": [
-          {
-            "Key": "kubernetes.io/cluster/exciting-badger-1557783835",
-            "Value": "owned"
-          },
-          {
-            "Key": "Name",
-            "Value": {
-              "Fn::Sub": "${AWS::StackName}/SG"
-            }
-          }
-        ],
-        "VpcId": {
-          "Fn::ImportValue": "eksctl-exciting-badger-1557783835-cluster::VPC"
-        }
-      }
-    }
-  },
-  "Outputs": {
-    "FeatureLocalSecurityGroup": {
-      "Value": true
-    },
-    "FeaturePrivateNetworking": {
-      "Value": false
-    },
-    "FeatureSharedSecurityGroup": {
-      "Value": true
-    },
-    "InstanceProfileARN": {
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}::InstanceProfileARN"
-        }
+      "EgressInterClusterAPI":{
+         "Type":"AWS::EC2::SecurityGroupEgress",
+         "Properties":{
+            "Description":"Allow control plane to communicate with worker nodes in group ng-04cccb09 (workloads using HTTPS port, commonly used with extension API servers)",
+            "DestinationSecurityGroupId":{
+               "Ref":"SG"
+            },
+            "FromPort":443,
+            "GroupId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SecurityGroup"
+            },
+            "IpProtocol":"tcp",
+            "ToPort":443
+         }
       },
-      "Value": {
-        "Fn::GetAtt": "NodeInstanceProfile.Arn"
-      }
-    },
-    "InstanceRoleARN": {
-      "Export": {
-        "Name": {
-          "Fn::Sub": "${AWS::StackName}::InstanceRoleARN"
-        }
+      "IngressInterCluster":{
+         "Type":"AWS::EC2::SecurityGroupIngress",
+         "Properties":{
+            "Description":"Allow worker nodes in group ng-04cccb09 to communicate with control plane (kubelet and workload TCP ports)",
+            "FromPort":1025,
+            "GroupId":{
+               "Ref":"SG"
+            },
+            "IpProtocol":"tcp",
+            "SourceSecurityGroupId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SecurityGroup"
+            },
+            "ToPort":65535
+         }
       },
-      "Value": {
-        "Fn::GetAtt": "NodeInstanceRole.Arn"
+      "IngressInterClusterAPI":{
+         "Type":"AWS::EC2::SecurityGroupIngress",
+         "Properties":{
+            "Description":"Allow worker nodes in group ng-04cccb09 to communicate with control plane (workloads using HTTPS port, commonly used with extension API servers)",
+            "FromPort":443,
+            "GroupId":{
+               "Ref":"SG"
+            },
+            "IpProtocol":"tcp",
+            "SourceSecurityGroupId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SecurityGroup"
+            },
+            "ToPort":443
+         }
+      },
+      "IngressInterClusterCP":{
+         "Type":"AWS::EC2::SecurityGroupIngress",
+         "Properties":{
+            "Description":"Allow control plane to receive API requests from worker nodes in group ng-04cccb09",
+            "FromPort":443,
+            "GroupId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SecurityGroup"
+            },
+            "IpProtocol":"tcp",
+            "SourceSecurityGroupId":{
+               "Ref":"SG"
+            },
+            "ToPort":443
+         }
+      },
+      "NodeGroup":{
+         "Type":"AWS::AutoScaling::AutoScalingGroup",
+         "Properties":{
+            "LaunchConfigurationName":{
+               "Ref":"NodeLaunchConfig"
+            },
+            "MaxSize":"2",
+            "MinSize":"2",
+            "Tags":[
+               {
+                  "Key":"Name",
+                  "PropagateAtLaunch":"true",
+                  "Value":"hilarious-creature-1557804590-ng-04cccb09-Node"
+               },
+               {
+                  "Key":"kubernetes.io/cluster/hilarious-creature-1557804590",
+                  "PropagateAtLaunch":"true",
+                  "Value":"owned"
+               }
+            ],
+            "VPCZoneIdentifier":{
+               "Fn::Split":[
+                  ",",
+                  {
+                     "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SubnetsPublic"
+                  }
+               ]
+            }
+         },
+         "UpdatePolicy":{
+            "AutoScalingRollingUpdate":{
+               "MaxBatchSize":"1",
+               "MinInstancesInService":"1"
+            }
+         }
+      },
+      "NodeInstanceProfile":{
+         "Type":"AWS::IAM::InstanceProfile",
+         "Properties":{
+            "Path":"/",
+            "Roles":[
+               {
+                  "Ref":"NodeInstanceRole"
+               }
+            ]
+         }
+      },
+      "NodeInstanceRole":{
+         "Type":"AWS::IAM::Role",
+         "Properties":{
+            "AssumeRolePolicyDocument":{
+               "Statement":[
+                  {
+                     "Action":[
+                        "sts:AssumeRole"
+                     ],
+                     "Effect":"Allow",
+                     "Principal":{
+                        "Service":[
+                           "ec2.amazonaws.com"
+                        ]
+                     }
+                  }
+               ],
+               "Version":"2012-10-17"
+            },
+            "ManagedPolicyArns":[
+               "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+               "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
+               "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+            ],
+            "Path":"/"
+         }
+      },
+      "NodeLaunchConfig":{
+         "Type":"AWS::AutoScaling::LaunchConfiguration",
+         "Properties":{
+            "AssociatePublicIpAddress":true,
+            "IamInstanceProfile":{
+               "Ref":"NodeInstanceProfile"
+            },
+            "ImageId":"ami-0abcb9f9190e867ab",
+            "InstanceType":"m5.large",
+            "SecurityGroups":[
+               {
+                  "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::SharedNodeSecurityGroup"
+               },
+               {
+                  "Ref":"SG"
+               }
+            ],
+            "UserData":"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"
+         }
+      },
+      "SG":{
+         "Type":"AWS::EC2::SecurityGroup",
+         "Properties":{
+            "GroupDescription":"Communication between the control plane and worker nodes in group ng-04cccb09",
+            "Tags":[
+               {
+                  "Key":"kubernetes.io/cluster/hilarious-creature-1557804590",
+                  "Value":"owned"
+               },
+               {
+                  "Key":"Name",
+                  "Value":{
+                     "Fn::Sub":"${AWS::StackName}/SG"
+                  }
+               }
+            ],
+            "VpcId":{
+               "Fn::ImportValue":"eksctl-hilarious-creature-1557804590-cluster::VPC"
+            }
+         }
       }
-    }
-  }
+   },
+   "Outputs":{
+      "FeatureLocalSecurityGroup":{
+         "Value":true
+      },
+      "FeaturePrivateNetworking":{
+         "Value":false
+      },
+      "FeatureSharedSecurityGroup":{
+         "Value":true
+      },
+      "InstanceProfileARN":{
+         "Export":{
+            "Name":{
+               "Fn::Sub":"${AWS::StackName}::InstanceProfileARN"
+            }
+         },
+         "Value":{
+            "Fn::GetAtt":"NodeInstanceProfile.Arn"
+         }
+      },
+      "InstanceRoleARN":{
+         "Export":{
+            "Name":{
+               "Fn::Sub":"${AWS::StackName}::InstanceRoleARN"
+            }
+         },
+         "Value":{
+            "Fn::GetAtt":"NodeInstanceRole.Arn"
+         }
+      }
+   }
 }
