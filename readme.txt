@@ -1,3 +1,4 @@
+# AWS
 docker build . -t mc1
 
 ecs-cli push mc1
